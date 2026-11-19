@@ -11,7 +11,7 @@
   let playlists = [];    // {id,name,trackIds,created}
   let likedIds = [];
   let playCounts = {};
-  let settings = { online: false, instance: OB.piped.getInstance() };
+  let settings = { online: true, instance: OB.piped.getInstance() };
 
   let vaultPw = null;
   let vaultUnlocked = false;
