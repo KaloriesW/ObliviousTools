@@ -1,0 +1,74 @@
+/* Oblivious embedded fonts.
+   "Georgia" and "Calibri" are backed by their metric-compatible OFL twins
+   (Gelasio / Carlito) with local() first — real fonts when present, embedded
+   twins everywhere else (e.g. locked-down Chromebooks). */
+@font-face {
+  font-family: 'Georgia';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Georgia'), url('../vendor/fonts/Gelasio-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Georgia';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Georgia Bold'), local('Georgia'), url('../vendor/fonts/Gelasio-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Calibri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Calibri'), url('../vendor/fonts/Carlito-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Calibri';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Calibri Bold'), local('Calibri'), url('../vendor/fonts/Carlito-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Roboto'), url('../vendor/fonts/Roboto-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Roboto Bold'), local('Roboto'), url('../vendor/fonts/Roboto-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Orbitron'), url('../vendor/fonts/Orbitron-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Orbitron Bold'), local('Orbitron'), url('../vendor/fonts/Orbitron-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Roboto Mono'), url('../vendor/fonts/Roboto-Mono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Roboto Mono Bold'), local('Roboto Mono'), url('../vendor/fonts/Roboto-Mono-700.woff2') format('woff2');
+}

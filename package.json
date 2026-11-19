@@ -1,0 +1,16 @@
+{
+  "name": "oblivious",
+  "version": "0.1.0",
+  "description": "Oblivious — a privacy toolkit of single-file apps. RAM-only sessions, encrypted exports.",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "serve": "python3 -m http.server 8080 --directory dist",
+    "test": "node tests/crypto.test.mjs && node tests/bundle.test.mjs && node tests/formulas.test.mjs",
+    "test:ui": "node tests/deep.mjs && node tests/styles.mjs && node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
+}

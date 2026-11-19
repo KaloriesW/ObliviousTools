@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wire — Oblivious</title>
+<link rel="stylesheet" href="../../styles/theme.css">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    display: flex; flex-direction: column;
+    --sp-green: #1ed760;
+    --sp-base: #121212;
+    --sp-elev: #181818;
+    --sp-elev2: #242424;
+    --sp-text2: #b3b3b3;
+    background: #000;
+  }
+
+  .wr-shell { flex: 1; display: flex; gap: 8px; padding: 8px; min-height: 0; }
+
+  /* ---------- sidebar (Spotify black) ---------- */
+  .wr-sidebar {
+    width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
+    background: var(--sp-base); border-radius: 10px; overflow: hidden;
+  }
+  body.wr-sidebar-closed .wr-sidebar { display: none; }
+  .wr-side-top { padding: 16px 16px 6px; display: flex; align-items: center; gap: 10px; }
+  .wr-side-top .wr-mark { font-weight: 800; font-size: 19px; letter-spacing: -0.04em; color: #fff; }
+  .wr-side-top a { margin-left: auto; font-size: 11.5px; color: var(--sp-text2); text-decoration: none; }
+  .wr-side-top a:hover { color: #fff; }
+  .wr-nav { padding: 4px 10px; }
+  .wr-nav-item {
+    display: flex; align-items: center; gap: 14px; padding: 8px 12px; border-radius: 6px;
+    color: var(--sp-text2); cursor: pointer; font-size: 14.5px; font-weight: 700;
+  }
+  .wr-nav-item:hover { color: #fff; }
+  .wr-nav-item.on { color: #fff; }
+  .wr-nav-item.on .wr-nav-ico { color: #fff; }
+  .wr-nav-ico { width: 22px; text-align: center; font-size: 16px; color: var(--sp-text2); }
+  .wr-side-sep { flex: 1; overflow-y: auto; padding: 4px 10px; }
+  .wr-side-sec {
+    display: flex; align-items: center; padding: 14px 12px 8px; color: var(--sp-text2);
+    font-size: 13.5px; font-weight: 700;
+  }
+  .wr-side-sec button { margin-left: auto; background: none; border: none; color: var(--sp-text2); cursor: pointer; font-size: 16px; }
+  .wr-side-sec button:hover { color: #fff; }
+  .wr-nav-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-nav-count { margin-left: auto; font-size: 12px; color: #6a6a6a; }
+  .wr-side-actions { padding: 10px; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #232323; }
+  .wr-side-actions .ob-btn {
+    justify-content: flex-start; background: transparent; border: none; color: var(--sp-text2);
+    font-weight: 700; font-size: 13.5px; padding: 8px 10px;
+  }
+  .wr-side-actions .ob-btn:hover { color: #fff; background: #1a1a1a; }
+
+  /* ---------- main ---------- */
+  .wr-mainwrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .wr-banner {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px; margin-bottom: 8px;
+    background: #2e7d4f33; border: 1px solid #1ed76055;
+    border-radius: 8px; font-size: 13px; flex-shrink: 0; color: #fff;
+  }
+  .wr-main {
+    flex: 1; overflow-y: auto; background: var(--sp-base); border-radius: 10px;
+    padding: 24px 26px 30px; min-height: 0;
+  }
+  #wr-search-view { flex: 1; overflow-y: auto; background: var(--sp-base); border-radius: 10px; padding: 24px 26px; min-height: 0; }
+  .wr-welcome { text-align: center; padding-top: 12vh; }
+  .wr-welcome h1 { font-size: 38px; margin: 0 0 10px; color: #fff; font-weight: 800; letter-spacing: -0.04em; }
+  .wr-welcome p { color: var(--sp-text2); }
+  .wr-main h2, #wr-search-view h2 { font-size: 22px; margin: 10px 0 16px; color: #fff; font-weight: 800; letter-spacing: -0.02em; }
+  .wr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 30px; }
+  .wr-card { cursor: pointer; padding: 12px; background: #181818; border-radius: 8px; transition: background .2s; }
+  .wr-card:hover { background: #282828; }
+  .wr-card-art {
+    position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden;
+    background: #282828; display: flex; align-items: center; justify-content: center;
+    font-size: 38px; color: #5e5e5e; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  .wr-card-art img { width: 100%; height: 100%; object-fit: cover; }
+  .wr-card-play {
+    position: absolute; right: 8px; bottom: 8px; width: 44px; height: 44px; border-radius: 50%;
+    background: var(--sp-green); color: #000; border: none; font-size: 16px; cursor: pointer;
+    opacity: 0; transform: translateY(8px); transition: all .2s; box-shadow: 0 8px 16px rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wr-card:hover .wr-card-play { opacity: 1; transform: none; }
+  .wr-card-play:hover { transform: scale(1.06); }
+  .wr-card-title { font-size: 14px; font-weight: 600; margin: 0 0 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
+  .wr-card-sub { font-size: 13px; color: var(--sp-text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- playlist view (gradient header like Spotify) ---------- */
+  .wr-pl-head {
+    display: flex; gap: 24px; align-items: flex-end; margin: -24px -26px 20px; padding: 56px 26px 24px;
+    background: linear-gradient(180deg, rgba(60,60,60,.85) 0%, rgba(30,30,30,.6) 60%, transparent 100%);
+    margin-bottom: 20px;
+  }
+  .wr-pl-art {
+    width: 180px; height: 180px; border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    background: #282828; display: flex; align-items: center; justify-content: center;
+    font-size: 58px; color: #5e5e5e; box-shadow: 0 12px 34px rgba(0,0,0,.55);
+  }
+  .wr-pl-art img { width: 100%; height: 100%; object-fit: cover; }
+  .wr-pl-kind { font-size: 12px; font-weight: 700; color: #fff; }
+  .wr-pl-head h1 { margin: 6px 0 10px; font-size: 44px; color: #fff; font-weight: 900; letter-spacing: -0.04em; }
+  .wr-pl-head .ob-dim { color: #d0d0d0; font-size: 13.5px; }
+  .wr-pl-actions { margin-top: 16px; display: flex; gap: 18px; align-items: center; }
+  .wr-bigplay {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--sp-green); color: #000;
+    border: none; font-size: 20px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wr-bigplay:hover { transform: scale(1.05); }
+
+  /* ---------- track table ---------- */
+  .wr-tracks { display: flex; flex-direction: column; }
+  .wr-tracks-head, .wr-track-row {
+    display: grid; grid-template-columns: 40px 1fr 200px 96px; gap: 14px; align-items: center;
+    padding: 8px 16px; border-radius: 4px;
+  }
+  .wr-tracks-head { color: #9a9a9a; font-size: 12.5px; font-weight: 600; border-bottom: 1px solid #2a2a2a; margin-bottom: 8px; letter-spacing: .04em; }
+  .wr-track-row { cursor: pointer; color: var(--sp-text2); position: relative; }
+  .wr-track-row:hover { background: #ffffff14; }
+  .wr-track-row.playing .wr-t { color: var(--sp-green); }
+  .wr-track-num { text-align: center; font-variant-numeric: tabular-nums; font-size: 13.5px; }
+  .wr-track-row:hover .wr-num, .wr-track-row.playing .wr-num { display: none; }
+  .wr-track-row:hover .wr-playglyph { display: inline; color: #fff; }
+  .wr-playglyph { display: none; }
+  .wr-eq { display: none; align-items: flex-end; gap: 2px; height: 12px; }
+  .wr-track-row.playing .wr-eq { display: inline-flex; }
+  .wr-eq i { width: 3px; background: var(--sp-green); animation: wrEq 1s ease infinite; }
+  .wr-eq i:nth-child(1) { height: 60%; animation-delay: .1s; }
+  .wr-eq i:nth-child(2) { height: 100%; animation-delay: .3s; }
+  .wr-eq i:nth-child(3) { height: 40%; animation-delay: .5s; }
+  @keyframes wrEq { 50% { transform: scaleY(.35); } }
+  .wr-track-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .wr-track-art { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+  .wr-track-name { display: flex; flex-direction: column; min-width: 0; }
+  .wr-t { color: #fff; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-a { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-offline { color: var(--sp-green); font-size: 8px; vertical-align: middle; }
+  .wr-track-album { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-track-dur { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .wr-track-actions { position: absolute; right: 66px; top: 50%; transform: translateY(-50%); display: none; gap: 6px; }
+  .wr-track-row:hover .wr-track-actions { display: flex; }
+  .wr-act { background: none; border: none; color: var(--sp-text2); cursor: pointer; font-size: 15px; }
+  .wr-act.on { color: var(--sp-green); }
+  .wr-act:hover { color: #fff; }
+
+  /* ---------- search ---------- */
+  #wr-search-input {
+    background: #242424; border: none; border-radius: 4px; color: #fff;
+    font-size: 15px; height: 44px; padding: 0 16px;
+  }
+  #wr-search-input:focus { background: #2f2f2f; }
+
+  /* ---------- player bar ---------- */
+  .wr-bar {
+    height: 90px; flex-shrink: 0; display: flex; align-items: center; gap: 16px;
+    padding: 0 16px; background: #000;
+  }
+  .wr-bar-now { display: flex; align-items: center; gap: 12px; width: 260px; min-width: 0; }
+  .wr-bar-art { width: 56px; height: 56px; border-radius: 6px; background: #282828; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #5e5e5e; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+  .wr-bar-art img { width: 100%; height: 100%; object-fit: cover; }
+  .wr-bar-title { font-size: 14px; font-weight: 500; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-bar-title:hover { text-decoration: underline; cursor: pointer; }
+  .wr-bar-artist { font-size: 12px; color: var(--sp-text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wr-bar-center { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+  .wr-controls { display: flex; align-items: center; gap: 18px; }
+  .wr-controls button { background: none; border: none; color: var(--sp-text2); cursor: pointer; font-size: 15px; }
+  .wr-controls button:hover { color: #fff; }
+  .wr-controls button.on { color: var(--sp-green); }
+  #wr-play {
+    width: 36px; height: 36px; border-radius: 50%; background: #fff; color: #000;
+    font-size: 13px; display: flex; align-items: center; justify-content: center;
+  }
+  #wr-play:hover { transform: scale(1.07); color: #000; }
+  .wr-seek-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 600px; }
+  .wr-seek-row input[type=range] { flex: 1; }
+  .wr-time { font-size: 11.5px; color: #a0a0a0; font-variant-numeric: tabular-nums; min-width: 36px; text-align: center; }
+  .wr-bar-right { display: flex; align-items: center; gap: 10px; width: 220px; justify-content: flex-end; }
+  .wr-bar-right button { background: none; border: none; color: var(--sp-text2); cursor: pointer; font-size: 15px; }
+  .wr-bar-right button:hover { color: #fff; }
+
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; background: #4d4d4d; border-radius: 2px; outline: none; cursor: pointer; }
+  input[type=range]:hover { background: #6b6b6b; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: #fff; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: none; cursor: pointer; }
+
+  /* ---------- queue panel ---------- */
+  #wr-queue {
+    position: fixed; top: 8px; right: 8px; bottom: 106px; width: 340px; z-index: 600;
+    background: #181818; border-radius: 8px;
+    display: flex; flex-direction: column; transform: translateX(370px); transition: transform .25s;
+    box-shadow: 0 16px 44px rgba(0,0,0,.6);
+  }
+  #wr-queue.open { transform: none; }
+  .wr-queue-head { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #2a2a2a; font-weight: 800; font-size: 15px; color: #fff; }
+  .wr-queue-head button { margin-left: auto; }
+  #wr-queue-list { flex: 1; overflow-y: auto; padding: 10px; }
+  .wr-q-row {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 6px;
+    cursor: pointer; font-size: 13.5px;
+  }
+  .wr-q-row:hover { background: #242424; }
+  .wr-q-row.on .wr-q-title { color: var(--sp-green); }
+  .wr-q-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
+  .wr-q-artist { color: #9a9a9a; font-size: 11.5px; }
+  .wr-q-x { background: none; border: none; color: #9a9a9a; cursor: pointer; }
+  .wr-q-x:hover { color: #fff; }
+
+  .wr-menu {
+    position: fixed; z-index: 800; background: #282828; border-radius: 6px; padding: 4px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.6); min-width: 180px; max-height: 280px; overflow-y: auto;
+  }
+  .wr-menu button { display: block; width: 100%; background: none; border: none; color: #fff; text-align: left; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 13.5px; }
+  .wr-menu button:hover { background: #3d3d3d; }
+
+  /* ---------- lyrics (Spotify-style synced) ---------- */
+  .wr-lyrics-panel {
+    position: fixed; top: 8px; right: 8px; bottom: 106px; width: 360px; z-index: 650;
+    background: #181818; border-radius: 8px;
+    display: flex; flex-direction: column; box-shadow: 0 16px 44px rgba(0,0,0,.6);
+  }
+  .wr-lyrics-head { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #2a2a2a; font-size: 13.5px; }
+  .wr-lyrics-head span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; color: #fff; }
+  .wr-lyrics-body { flex: 1; overflow-y: auto; padding: 48px 20px; scroll-behavior: smooth; }
+  .wr-lyrics-line { font-size: 20px; font-weight: 800; color: #565656; padding: 9px 0; transition: color .25s; letter-spacing: -0.01em; }
+  .wr-lyrics-line.on { color: #fff; }
+  .wr-lyrics-body.plain { white-space: pre-wrap; color: var(--sp-text2); font-size: 14.5px; }
+
+  /* light-theme component overrides inside app */
+  .wr-main .ob-btn, .wr-side-actions .ob-btn { color: var(--sp-text2); }
+  .wr-banner .ob-btn.primary { background: var(--sp-green); color: #000; border-color: var(--sp-green); }
+  .wr-banner .ob-btn.primary:hover { background: #1fdf64; }
+  .wr-banner .ob-btn.ghost { color: #fff; }
+
+  @media (max-width: 900px) {
+    .wr-sidebar { width: 68px; }
+    .wr-sidebar .wr-nav-item span:not(.wr-nav-ico), .wr-side-sep, .wr-side-actions .ob-btn { display: none; }
+    .wr-side-top .wr-mark { display: none; }
+    .wr-col-album { display: none; }
+    .wr-tracks-head, .wr-track-row { grid-template-columns: 40px 1fr 70px; }
+    .wr-bar-now, .wr-bar-right { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wr-shell">
+  <aside class="wr-sidebar">
+    <div class="wr-side-top">
+      <button class="ob-btn ghost sm" id="wr-sidebar-toggle">☰</button>
+      <span class="wr-mark">Wire</span>
+      <a href="index.html">‹ Home</a>
+    </div>
+    <nav class="wr-nav">
+      <div class="wr-nav-item on" data-view="home"><span class="wr-nav-ico">⌂</span> Home</div>
+      <div class="wr-nav-item" data-view="search"><span class="wr-nav-ico">⌕</span> Search</div>
+    </nav>
+    <div class="wr-side-sep">
+      <div class="wr-side-sec">Your Library <button id="wr-new-pl" title="New playlist">＋</button></div>
+      <div id="wr-playlists"></div>
+    </div>
+    <div class="wr-side-actions">
+      <button class="ob-btn ghost sm" id="wr-add-music">＋ Add music</button>
+      <button class="ob-btn ghost sm" id="wr-add-folder">＋ Add folder</button>
+      <button class="ob-btn ghost sm" id="wr-settings">⚙ Settings</button>
+      <button class="ob-btn ghost sm" id="wr-save">🔒 Save library</button>
+      <button class="ob-btn ghost sm" id="wr-import">⇩ Import</button>
+      <button class="ob-btn ghost sm" id="wr-lock">⏻ Lock</button>
+    </div>
+  </aside>
+
+  <div class="wr-mainwrap">
+    <div class="wr-banner ob-hidden" id="wr-banner">
+      <span class="ob-grow">Encrypted library found on this device</span>
+      <button class="ob-btn sm primary" id="wr-banner-unlock">Unlock</button>
+      <button class="ob-btn sm ghost" id="wr-banner-ignore">Ignore</button>
+    </div>
+    <div class="wr-main" id="wr-main"></div>
+    <div id="wr-search-view" class="ob-hidden">
+      <input class="ob-input" id="wr-search-input" placeholder="What do you want to listen to?">
+      <div id="wr-search-results" style="margin-top:20px"></div>
+    </div>
+  </div>
+
+  <div id="wr-queue">
+    <div class="wr-queue-head">Queue <button class="ob-btn ghost sm" id="wr-queue-close">✕</button></div>
+    <div id="wr-queue-list"></div>
+  </div>
+</div>
+
+<div class="wr-bar">
+  <div class="wr-bar-now">
+    <div class="wr-bar-art" id="wr-bar-art"></div>
+    <div style="min-width:0">
+      <div class="wr-bar-title" id="wr-bar-title">Nothing playing</div>
+      <div class="wr-bar-artist" id="wr-bar-artist"></div>
+    </div>
+  </div>
+  <div class="wr-bar-center">
+    <div class="wr-controls">
+      <button id="wr-shuffle" title="Toggle shuffle">⇄</button>
+      <button id="wr-prev" title="Previous">⏮</button>
+      <button id="wr-play" title="Play / Pause">▶</button>
+      <button id="wr-next" title="Next">⏭</button>
+      <button id="wr-repeat" title="Toggle repeat">🔁</button>
+    </div>
+    <div class="wr-seek-row">
+      <span class="wr-time" id="wr-time-cur">0:00</span>
+      <input type="range" id="wr-seek" min="0" max="100" value="0" step="0.1">
+      <span class="wr-time" id="wr-time-total">0:00</span>
+    </div>
+  </div>
+  <div class="wr-bar-right">
+    <button id="wr-lyrics-btn" title="Lyrics (LRCLIB)">🎤</button>
+    <button id="wr-queue-btn" title="Queue">☰</button>
+    <input type="range" id="wr-vol" min="0" max="1" step="0.01" value="0.9" style="width:92px" title="Volume">
+  </div>
+</div>
+
+<script src="../../core/crypto.js"></script>
+<script src="../../core/bundle.js"></script>
+<script src="../../core/store.js"></script>
+<script src="../../core/ui.js"></script>
+<script src="piped.js"></script>
+<script src="lyrics.js"></script>
+<script src="player.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
